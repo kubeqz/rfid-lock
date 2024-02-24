@@ -35,12 +35,25 @@ bool LockLogic::checkTag()
 
 void LockLogic::process()
 {
-    initFastClock();
-    bool result = checkTag();
+    unsigned retry = 3;
+    bool tagFound = false;
+
+    while (true) {
+        initFastClock();
+        tagFound = checkTag();
+
+        if (tagFound || (retry == 0)) {
+            break;
+        } else {
+            initSlowClock();
+            delay_ms(200);
+            retry--;
+        }
+    }
 
     initSlowClock();
 
-    if (result) {
+    if (tagFound) {
         m_buzzer.doubleBeep(50, 100);
         m_servo.set();
     } else {
@@ -48,7 +61,7 @@ void LockLogic::process()
     }
 
     // give servo enough time to move
-    for (unsigned i = 0; i <= 800; i++) {
+    for (unsigned i = 0; i <= 600; i++) {
         __delay_cycles(1000);
     }
 
